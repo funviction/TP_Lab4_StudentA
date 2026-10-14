@@ -1,45 +1,52 @@
-#include "NumericalIntegration.h"
+﻿#include "NumericalIntegration.h"
 #include <cmath>
-#include <stdexcept>
+#include <limits>
+#include <algorithm>
 
-namespace NumericalIntegration {
-    double rectangle(MathFunction f, double a, double b, int n) {
-        if (n <= 0) throw std::invalid_argument("n must be > 0");
-        double h = (b - a) / n;
-        double sum = 0.0;
-        for (int i = 0; i < n; ++i) {
-            double x_mid = a + (i + 0.5) * h;
-            sum += f(x_mid);
-        }
-        return sum * h;
-    }
+static bool isValidInput(MathFunc f, double a, double b, int steps) {
+    if (f == nullptr) return false;
+    if (steps <= 0) return false;
+    if (std::isnan(a) || std::isnan(b)) return false;
+    return true;
+}
 
-    double trapezoid(MathFunction f, double a, double b, int n) {
-        if (n <= 0) throw std::invalid_argument("n must be > 0");
-        double h = (b - a) / n;
-        double sum = 0.5 * (f(a) + f(b));
-        for (int i = 1; i < n; ++i) {
-            sum += f(a + i * h);
-        }
-        return sum * h;
+double rectangle(MathFunc f, double a, double b, int steps) {
+    if (!isValidInput(f, a, b, steps)) return std::numeric_limits<double>::quiet_NaN();
+    double h = (b - a) / steps;
+    double sum = 0.0;
+    for (int i = 0; i < steps; ++i) {
+        double x = a + (i + 0.5) * h;
+        sum += f(x);
     }
+    return sum * h;
+}
 
-    double simpson(MathFunction f, double a, double b, int n) {
-        if (n <= 0) throw std::invalid_argument("n must be > 0");
-        if (n % 2 != 0) n += 1;
-        double h = (b - a) / n;
-        double sum = f(a) + f(b);
-        for (int i = 1; i < n; ++i) {
-            double x = a + i * h;
-            if (i % 2 == 0) sum += 2 * f(x);
-            else sum += 4 * f(x);
-        }
-        return sum * (h / 3.0);
+double trapezoid(MathFunc f, double a, double b, int steps) {
+    if (!isValidInput(f, a, b, steps)) return std::numeric_limits<double>::quiet_NaN();
+    double h = (b - a) / steps;
+    double sum = 0.5 * (f(a) + f(b));
+    for (int i = 1; i < steps; ++i) {
+        double x = a + i * h;
+        sum += f(x);
     }
+    return sum * h;
+}
 
-    double integrationError(MathFunction f, double a, double b, int n, double (*method)(MathFunction, double, double, int), int p) {
-        double I_n = method(f, a, b, n);
-        double I_2n = method(f, a, b, 2 * n);
-        return std::abs(I_2n - I_n) / (std::pow(2, p) - 1.0);
+double simpson(MathFunc f, double a, double b, int steps) {
+    if (!isValidInput(f, a, b, steps)) return std::numeric_limits<double>::quiet_NaN();
+    if (steps % 2 != 0) steps++;
+    double h = (b - a) / steps;
+    double sum = f(a) + f(b);
+    for (int i = 1; i < steps; ++i) {
+        double x = a + i * h;
+        if (i % 2 == 0) sum += 2.0 * f(x);
+        else sum += 4.0 * f(x);
     }
+    return sum * (h / 3.0);
+}
+
+double integrationError(double coarseValue, double fineValue, int orderOfAccuracy) {
+    if (orderOfAccuracy <= 0) return std::numeric_limits<double>::quiet_NaN();
+    double denominator = std::pow(2.0, orderOfAccuracy) - 1.0;
+    return std::abs(fineValue - coarseValue) / denominator;
 }

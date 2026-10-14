@@ -1,15 +1,29 @@
-#ifndef NUMERICAL_INTEGRATION_H
+﻿#ifndef NUMERICAL_INTEGRATION_H
 #define NUMERICAL_INTEGRATION_H
 
-#include <functional>
+#ifdef _WIN32
+    #ifdef NUMERICALINTEGRATION_EXPORTS
+        #define NUMERICALINTEGRATION_API __declspec(dllexport)
+    #else
+        #define NUMERICALINTEGRATION_API __declspec(dllimport)
+    #endif
+#else
+    #define NUMERICALINTEGRATION_API
+#endif
 
-namespace NumericalIntegration {
-    using MathFunction = std::function<double(double)>;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-    double rectangle(MathFunction f, double a, double b, int n);
-    double trapezoid(MathFunction f, double a, double b, int n);
-    double simpson(MathFunction f, double a, double b, int n);
-    double integrationError(MathFunction f, double a, double b, int n, double (*method)(MathFunction, double, double, int), int p);
+typedef double (*MathFunc)(double);
+
+NUMERICALINTEGRATION_API double rectangle(MathFunc f, double a, double b, int steps);
+NUMERICALINTEGRATION_API double trapezoid(MathFunc f, double a, double b, int steps);
+NUMERICALINTEGRATION_API double simpson(MathFunc f, double a, double b, int steps);
+NUMERICALINTEGRATION_API double integrationError(double coarseValue, double fineValue, int orderOfAccuracy);
+
+#ifdef __cplusplus
 }
+#endif
 
 #endif // NUMERICAL_INTEGRATION_H
