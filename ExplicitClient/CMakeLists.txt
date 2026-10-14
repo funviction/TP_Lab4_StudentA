@@ -1,0 +1,6 @@
+﻿cmake_minimum_required(VERSION 3.16)
+project(ExplicitClient CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_executable(ExplicitApp main.cpp)
+add_custom_command(TARGET ExplicitApp POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/../3rdParty/PartnerSDK/bin/NumericalDiff.dll" $<TARGET_FILE_DIR:ExplicitApp> COMMENT "Copying DLL")
